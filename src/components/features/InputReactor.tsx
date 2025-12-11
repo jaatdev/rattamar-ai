@@ -11,16 +11,28 @@ export function InputReactor() {
     const handleGenerate = async () => {
         if (!input) return;
         setIsGenerating(true);
+        setResult(null); // Reset previous result
 
-        // SIMULATION FOR UI TESTING (We connect API in Step 3)
-        setTimeout(() => {
-            setIsGenerating(false);
-            setResult({
-                topic: "Newton's Third Law",
-                mnemonic: "ACTION ka reaction humesha ULTA aur BARABAR hota hai.",
-                story: "Imagine Newton slapping a wall. The wall slaps him back instantly with the same force. Ouch.",
+        try {
+            const response = await fetch("/api/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: input }),
             });
-        }, 2000);
+
+            const data = await response.json();
+
+            if (data.success) {
+                setResult(data.data);
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (error) {
+            alert("Something went wrong. Check console.");
+            console.error("API Error:", error);
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     return (
