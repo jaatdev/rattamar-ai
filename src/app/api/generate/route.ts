@@ -2,24 +2,18 @@ import { NextResponse } from "next/server";
 import { getGeminiModel } from "@/lib/gemini";
 
 const SYSTEM_PROMPT = `
-You are "RattaMaar," the universe's coolest Indian tutor. 
+You are "RattaMaar," the universe's coolest Indian tutor.
 Your goal is to make the user memorize boring topics instantly using "Hinglish Mnemonics."
 
 **Format Protocol:**
-You must return a strictly valid JSON object. Do not add markdown like \`\`\`json. Just the raw JSON.
-
-**Tone Guide:**
-- Use Hinglish (Hindi + English).
-- Be funny, slightly roasted, but educational.
-- Use Bollywood references, slang (Bhai, Scene, Jugaad), and rhyming.
-
-**Output Structure:**
+You must return a strictly valid JSON object. 
+Format:
 {
   "topic": "Clean Topic Name",
   "mnemonic": "The short, punchy mnemonic sentence",
   "explanation": "Brief explanation in Hinglish",
   "story": "A funny mental image/story to visualize",
-  "color_mood": "Identify the emotion (e.g., 'Aggressive', 'Funny', 'Calm')" 
+  "color_mood": "Identify the emotion (e.g., 'Aggressive', 'Funny', 'Calm')"
 }
 `;
 
@@ -28,42 +22,55 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { text } = body;
 
-        if (!text) {
-            return NextResponse.json({ error: "Empty input" }, { status: 400 });
-        }
-
-        // 1. Initialize the Model (Load Balanced)
+        // 1. Get the Model (We use the one from lib/gemini)
         const model = getGeminiModel();
 
-        // 2. Construct the Prompt
+        // 2. The Prompt
         const finalPrompt = `
       ${SYSTEM_PROMPT}
-      
       USER INPUT: "${text}"
-      
       Generate the JSON response now:
     `;
 
-        // 3. Generate
-        const result = await model.generateContent(finalPrompt);
+        // 3. Generate Content (Force JSON Mode if supported, otherwise standard)
+        const result = await model.generateContent({
+            contents: [{ role: "user", parts: [{ text: finalPrompt }] }],
+            // This config forces Gemini 1.5 to output JSON
+            generationConfig: { responseMimeType: "application/json" }
+        });
+
         const response = result.response;
         let outputText = response.text();
 
-        // 4. Sanitize JSON (Gemini sometimes adds backticks)
-        outputText = outputText.replace(/```json/g, "").replace(/```/g, "").trim();
+        console.log("AI Raw Response:", outputText); // For debugging
 
-        try {
-            const jsonData = JSON.parse(outputText);
-            return NextResponse.json({ success: true, data: jsonData });
-        } catch (e) {
-            console.error("JSON Parse Error:", outputText);
-            return NextResponse.json({ error: "AI got confused. Try again." }, { status: 500 });
+        // 4. CLEANING: Extract JSON from the text (Regex magic)
+        // This finds the first "{" and the last "}" and keeps everything in between
+        const jsonMatch = outputText.match(/\{[\s\S]*\}/);
+
+        if (jsonMatch) {
+            outputText = jsonMatch[0];
+        } else {
+            throw new Error("No JSON found in response");
         }
 
-    } catch (error) {
-        console.error("API Error:", error);
+        // 5. Parse
+        const jsonData = JSON.parse(outputText);
+        return NextResponse.json({ success: true, data: jsonData });
+
+    } catch (error: any) {
+        console.error("API Error Detailed:", error);
+
+        // Handle the 404 specifically
+        if (error.message?.includes("404") || error.message?.includes("not found")) {
+            return NextResponse.json(
+                { error: "Model loading failed. Try restarting server or checking API keys." },
+                { status: 500 }
+            );
+        }
+
         return NextResponse.json(
-            { error: "Server overloaded (or key expired). Retrying..." },
+            { error: "AI got confused. Try again." },
             { status: 500 }
         );
     }
