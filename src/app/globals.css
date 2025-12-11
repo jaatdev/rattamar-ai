@@ -12,20 +12,20 @@
   /* Font System */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  
+
   /* Border Radius System */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  
+
   /* Cyber-Gurukul Color Tokens */
   --color-void: var(--void);
   --color-brain: var(--brain);
   --color-energy: var(--energy);
   --color-clarity: var(--clarity);
   --color-glass: var(--glass);
-  
+
   /* Standard Shadcn Mappings */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -51,53 +51,53 @@
   /* ====== CYBER-GURUKUL PALETTE ====== */
   /* The Void - Deep charcoal, never pure black */
   --void: #09090B;
-  
+
   /* The Brain - Electric Violet (Intelligence/Magic) */
   --brain: #8B5CF6;
-  
+
   /* The Energy - Neon Saffron (Indian Fire) */
   --energy: #F97316;
-  
+
   /* The Clarity - Soft readable white */
   --clarity: #E4E4E7;
-  
+
   /* Glass Effect Base */
   --glass: rgba(255, 255, 255, 0.05);
-  
+
   /* ====== SEMANTIC COLOR SYSTEM ====== */
   --background: #09090B;
   --foreground: #E4E4E7;
-  
+
   --card: rgba(255, 255, 255, 0.03);
   --card-foreground: #E4E4E7;
-  
+
   --popover: rgba(18, 18, 20, 0.95);
   --popover-foreground: #E4E4E7;
-  
+
   /* Primary = The Brain (Violet) */
   --primary: #8B5CF6;
   --primary-foreground: #FAFAFA;
-  
+
   /* Secondary = Muted Violet */
   --secondary: rgba(139, 92, 246, 0.15);
   --secondary-foreground: #E4E4E7;
-  
+
   /* Muted tones */
   --muted: rgba(255, 255, 255, 0.05);
   --muted-foreground: #A1A1AA;
-  
+
   /* Accent = The Energy (Saffron) */
   --accent: #F97316;
   --accent-foreground: #FAFAFA;
-  
+
   /* Destructive */
   --destructive: #EF4444;
-  
+
   /* Borders & Inputs */
   --border: rgba(255, 255, 255, 0.08);
   --input: rgba(255, 255, 255, 0.08);
   --ring: #8B5CF6;
-  
+
   /* Border Radius */
   --radius: 0.75rem;
 }
@@ -107,14 +107,14 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-void text-clarity;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   /* Smooth scrolling */
   html {
     scroll-behavior: smooth;
@@ -123,32 +123,29 @@
 
 /* ====== CUSTOM UTILITY CLASSES ====== */
 @layer utilities {
+
   /* Aurora Gradient Background */
   .aurora-bg {
-    background: radial-gradient(
-      ellipse 80% 50% at 50% -20%,
-      rgba(139, 92, 246, 0.15),
-      transparent
-    ),
-    radial-gradient(
-      ellipse 60% 50% at 80% 50%,
-      rgba(249, 115, 22, 0.1),
-      transparent
-    );
+    background: radial-gradient(ellipse 80% 50% at 50% -20%,
+        rgba(139, 92, 246, 0.15),
+        transparent),
+      radial-gradient(ellipse 60% 50% at 80% 50%,
+        rgba(249, 115, 22, 0.1),
+        transparent);
   }
-  
+
   /* Glass Panel Effect */
   .glass-panel {
     background: rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
   }
-  
+
   /* Text Glow Effect */
   .text-glow {
     text-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
   }
-  
+
   /* Gradient Text */
   .gradient-text {
     background: linear-gradient(135deg, #8B5CF6 0%, #F97316 100%);
@@ -156,7 +153,7 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   /* Smooth Transitions */
   .transition-smooth {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -166,27 +163,39 @@
 /* ====== CUSTOM ANIMATIONS ====== */
 @layer utilities {
   @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(0px);
     }
+
     50% {
       transform: translateY(-20px);
     }
   }
-  
+
   @keyframes pulse-glow {
-    0%, 100% {
+
+    0%,
+    100% {
       box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
     }
+
     50% {
       box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
     }
   }
-  
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
-  
+
   .animate-pulse-glow {
     animation: pulse-glow 2s ease-in-out infinite;
   }
@@ -198,16 +207,16 @@
     width: 8px;
     height: 8px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.02);
   }
-  
+
   ::-webkit-scrollbar-thumb {
     background: rgba(139, 92, 246, 0.3);
     border-radius: 4px;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     background: rgba(139, 92, 246, 0.5);
   }

@@ -1,0 +1,119 @@
+"use client";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sparkles, Zap, Copy, Check } from "lucide-react";
+
+export function InputReactor() {
+    const [input, setInput] = useState("");
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [result, setResult] = useState<null | any>(null); // We will type this later
+
+    const handleGenerate = async () => {
+        if (!input) return;
+        setIsGenerating(true);
+
+        // SIMULATION FOR UI TESTING (We connect API in Step 3)
+        setTimeout(() => {
+            setIsGenerating(false);
+            setResult({
+                topic: "Newton's Third Law",
+                mnemonic: "ACTION ka reaction humesha ULTA aur BARABAR hota hai.",
+                story: "Imagine Newton slapping a wall. The wall slaps him back instantly with the same force. Ouch.",
+            });
+        }, 2000);
+    };
+
+    return (
+        <section className="relative z-20 -mt-20 flex w-full flex-col items-center justify-center px-4 pb-20">
+
+            {/* THE REACTOR CONTAINER */}
+            <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.7 }}
+                className="relative w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-zinc-900/50 backdrop-blur-2xl shadow-2xl shadow-violet-500/10"
+            >
+
+                {/* Glowing Top Border */}
+                <div className="absolute top-0 h-[1px] w-full bg-gradient-to-r from-transparent via-violet-500 to-transparent opacity-50" />
+
+                <div className="p-2">
+                    {/* THE INPUT AREA */}
+                    <div className="relative">
+                        <textarea
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder="Paste your boring text here (e.g., Article 21, Newton's Laws, Mitochondria)..."
+                            className="min-h-[150px] w-full resize-none rounded-2xl border border-zinc-800 bg-zinc-950/50 p-6 text-lg text-zinc-100 placeholder:text-zinc-600 focus:border-violet-500/50 focus:outline-none focus:ring-4 focus:ring-violet-500/10 transition-all"
+                        />
+
+                        {/* Corner Accents */}
+                        <Zap className="absolute right-4 top-4 h-5 w-5 text-zinc-700" />
+                    </div>
+
+                    {/* CONTROL PANEL */}
+                    <div className="mt-2 flex items-center justify-between rounded-xl bg-zinc-900/50 p-2">
+
+                        {/* Options (Future Proofing) */}
+                        <div className="flex gap-2 px-2">
+                            <span className="text-xs font-medium text-zinc-500 uppercase tracking-wider">Mode:</span>
+                            <span className="text-xs font-bold text-violet-400">Hinglish Roast</span>
+                        </div>
+
+                        {/* THE LAUNCH BUTTON */}
+                        <button
+                            onClick={handleGenerate}
+                            disabled={isGenerating}
+                            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-xl bg-violet-600 px-6 py-3 font-semibold text-white transition-all hover:bg-violet-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isGenerating ? (
+                                <>
+                                    <span className="animate-spin">⏳</span> Cooking...
+                                </>
+                            ) : (
+                                <>
+                                    <Sparkles className="h-4 w-4 fill-white" />
+                                    <span>Memorize This</span>
+                                </>
+                            )}
+
+                            {/* Button Shine Effect */}
+                            <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+
+            {/* RESULT CARD PREVIEW (Will animate in when data arrives) */}
+            <AnimatePresence>
+                {result && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="mt-8 w-full max-w-3xl rounded-3xl border border-violet-500/20 bg-zinc-950/80 p-8 backdrop-blur-xl"
+                    >
+                        <div className="mb-4 flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/20 text-violet-300">
+                                🧠
+                            </div>
+                            <h3 className="text-xl font-bold text-white">Mnemonic Generated</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="rounded-xl bg-zinc-900 p-6 border border-zinc-800">
+                                <p className="text-2xl font-bold text-violet-300 font-mono">
+                                    "{result.mnemonic}"
+                                </p>
+                            </div>
+                            <p className="text-zinc-400 leading-relaxed">
+                                {result.story}
+                            </p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+        </section>
+    );
+}
