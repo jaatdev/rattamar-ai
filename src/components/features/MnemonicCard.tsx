@@ -1,7 +1,7 @@
 "use client";
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { motion, useMotionTemplate, useMotionValue, useSpring } from "framer-motion";
-import { Copy, Share2, Volume2 } from "lucide-react";
+import { Copy, Share2, Volume2, Eye, Loader2 } from "lucide-react";
 
 interface MnemonicData {
     topic: string;
@@ -38,6 +38,16 @@ export function MnemonicCard({ data }: { data: MnemonicData }) {
         y.set(0);
     };
 
+    // [NEW] STATE FOR IMAGE LOADING
+    const [showImage, setShowImage] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
+
+    // [NEW] GENERATE IMAGE URL (Using Pollinations for instant/free results)
+    const imagePrompt = encodeURIComponent(
+        `Cyberpunk illustration, neon style, ${data.story}, educational, detailed, 8k`
+    );
+    const imageUrl = `https://image.pollinations.ai/prompt/${imagePrompt}?width=800&height=600&nologo=true`;
+
     return (
         <motion.div
             ref={ref}
@@ -51,7 +61,7 @@ export function MnemonicCard({ data }: { data: MnemonicData }) {
             {/* GLOWING BORDER EFFECT */}
             <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-r from-violet-600 to-indigo-600 opacity-20 blur transition group-hover:opacity-50" />
 
-            <div className="relative h-full w-full rounded-[22px] bg-zinc-950/90 p-8 shadow-inner">
+            <div className="relative h-full w-full rounded-[22px] bg-zinc-950/90 p-8 shadow-inner overflow-hidden">
 
                 {/* HEADER */}
                 <div className="flex items-start justify-between">
@@ -78,19 +88,60 @@ export function MnemonicCard({ data }: { data: MnemonicData }) {
                     </p>
                 </div>
 
-                {/* STORY & VISUAL CUE */}
-                <div className="grid gap-6 md:grid-cols-2">
-                    <div className="space-y-2">
-                        <h3 className="text-sm font-semibold uppercase text-zinc-500 tracking-wider">The Logic (Samajh)</h3>
-                        <p className="text-zinc-300 leading-relaxed">{data.explanation}</p>
+                {/* [NEW] THE VISUALIZER SECTION */}
+                <div className="grid gap-6 md:grid-cols-2 mt-8">
+
+                    {/* LEFT: The Text Explanation */}
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-semibold uppercase text-zinc-500 tracking-wider">The Logic (Samajh)</h3>
+                            <p className="text-zinc-300 leading-relaxed text-sm">{data.explanation}</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-semibold uppercase text-zinc-500 tracking-wider">Visual Trigger (Socho)</h3>
+                            <p className="text-indigo-200 italic leading-relaxed text-sm">
+                                "{data.story}"
+                            </p>
+                        </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <h3 className="text-sm font-semibold uppercase text-zinc-500 tracking-wider">Visual Trigger (Socho)</h3>
-                        <p className="text-indigo-200 italic leading-relaxed">
-                            {data.story}
-                        </p>
+                    {/* RIGHT: The Image Reactor */}
+                    <div className="relative flex aspect-video w-full items-center justify-center rounded-xl border border-white/10 bg-black/50 overflow-hidden">
+
+                        {!showImage ? (
+                            <button
+                                onClick={() => setShowImage(true)}
+                                className="group/btn flex flex-col items-center gap-2 transition-transform hover:scale-105"
+                            >
+                                <div className="rounded-full bg-violet-600 p-4 shadow-lg shadow-violet-500/30 group-hover/btn:bg-violet-500">
+                                    <Eye className="h-6 w-6 text-white" />
+                                </div>
+                                <span className="text-xs font-medium text-violet-300">Visualize Memory</span>
+                            </button>
+                        ) : (
+                            <>
+                                {/* Loading State */}
+                                {!imageLoaded && (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-zinc-900">
+                                        <Loader2 className="h-8 w-8 animate-spin text-violet-500" />
+                                    </div>
+                                )}
+
+                                {/* The Image */}
+                                <img
+                                    src={imageUrl}
+                                    alt="Mnemonic Visual"
+                                    className={`h-full w-full object-cover transition-opacity duration-700 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                    onLoad={() => setImageLoaded(true)}
+                                />
+
+                                {/* Overlay Gradient */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                            </>
+                        )}
                     </div>
+
                 </div>
 
                 {/* BOTTOM DECORATION */}
