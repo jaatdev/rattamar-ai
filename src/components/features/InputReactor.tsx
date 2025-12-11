@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Zap, Copy, Check } from "lucide-react";
+import { Sparkles, Zap } from "lucide-react";
+import { MnemonicCard } from "./MnemonicCard";
 
 export function InputReactor() {
     const [input, setInput] = useState("");
@@ -99,30 +100,9 @@ export function InputReactor() {
             {/* RESULT CARD PREVIEW (Will animate in when data arrives) */}
             <AnimatePresence>
                 {result && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="mt-8 w-full max-w-3xl rounded-3xl border border-violet-500/20 bg-zinc-950/80 p-8 backdrop-blur-xl"
-                    >
-                        <div className="mb-4 flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-500/20 text-violet-300">
-                                🧠
-                            </div>
-                            <h3 className="text-xl font-bold text-white">Mnemonic Generated</h3>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="rounded-xl bg-zinc-900 p-6 border border-zinc-800">
-                                <p className="text-2xl font-bold text-violet-300 font-mono">
-                                    "{result.mnemonic}"
-                                </p>
-                            </div>
-                            <p className="text-zinc-400 leading-relaxed">
-                                {result.story}
-                            </p>
-                        </div>
-                    </motion.div>
+                    <div className="mt-8 flex w-full justify-center" style={{ perspective: "1000px" }}>
+                        <MnemonicCard data={result} />
+                    </div>
                 )}
             </AnimatePresence>
 
