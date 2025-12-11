@@ -1,7 +1,9 @@
 "use client";
 import React, { useRef, useState } from "react";
 import { motion, useMotionTemplate, useMotionValue, useSpring } from "framer-motion";
-import { Copy, Share2, Volume2, Eye, Loader2 } from "lucide-react";
+import { Copy, Share2, Volume2, Eye, Loader2, Download, Check } from "lucide-react";
+import { toPng } from "html-to-image";
+import download from "downloadjs";
 
 interface MnemonicData {
     topic: string;
@@ -41,6 +43,61 @@ export function MnemonicCard({ data }: { data: MnemonicData }) {
     // [NEW] STATE FOR IMAGE LOADING
     const [showImage, setShowImage] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    // [NEW] AUDIO ENGINE (Backend Proxy Pipeline)
+    const [audioInstance, setAudioInstance] = useState<HTMLAudioElement | null>(null);
+
+    const handleSpeak = async () => {
+        // 1. Pause if playing
+        if (isSpeaking && audioInstance) {
+            audioInstance.pause();
+            setIsSpeaking(false);
+            return;
+        }
+
+        try {
+            setIsSpeaking(true);
+
+            // 2. Call OUR Backend Proxy
+            const response = await fetch("/api/tts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: data.mnemonic }),
+            });
+
+            if (!response.ok) throw new Error("Audio fetch failed");
+
+            // 3. Turn the response into a playable Blob
+            const blob = await response.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+
+            setAudioInstance(audio);
+
+            // 4. Play
+            audio.play();
+
+            audio.onended = () => {
+                setIsSpeaking(false);
+                URL.revokeObjectURL(audioUrl); // Clean up memory
+            };
+
+        } catch (error) {
+            console.error("Speaker Error:", error);
+            setIsSpeaking(false);
+            alert("Audio engine is cooling down. Try again in 5s.");
+        }
+    };
+
+    // [NEW] COPY FUNCTION
+    const handleCopy = () => {
+        navigator.clipboard.writeText(`${data.mnemonic}\n\nExplanation: ${data.explanation}`);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
     // [NEW] GENERATE IMAGE URL (Using Pollinations for instant/free results)
     const imagePrompt = encodeURIComponent(
@@ -48,8 +105,31 @@ export function MnemonicCard({ data }: { data: MnemonicData }) {
     );
     const imageUrl = `https://image.pollinations.ai/prompt/${imagePrompt}?width=800&height=600&nologo=true`;
 
+    // [NEW] EXPORT FUNCTION
+    const handleDownload = async () => {
+        if (!ref.current) return;
+        setIsDownloading(true);
+
+        try {
+            // Reset tilt temporarily for a flat, clean screenshot
+            x.set(0);
+            y.set(0);
+
+            // Capture
+            const dataUrl = await toPng(ref.current, { cacheBust: true, pixelRatio: 3 });
+
+            // Download
+            download(dataUrl, `rattamaar-${data.topic.replace(/\s+/g, '-').toLowerCase()}.png`);
+        } catch (err) {
+            console.error("Export failed", err);
+        } finally {
+            setIsDownloading(false);
+        }
+    };
+
     return (
         <motion.div
+            id="mnemonic-card"
             ref={ref}
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
@@ -72,11 +152,19 @@ export function MnemonicCard({ data }: { data: MnemonicData }) {
                         <h2 className="text-3xl font-bold text-white tracking-tight">{data.topic}</h2>
                     </div>
                     <div className="flex gap-2">
-                        <button className="rounded-full bg-zinc-800 p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors">
-                            <Volume2 size={18} />
+                        <button
+                            onClick={handleSpeak}
+                            className={`group relative rounded-full p-2 transition-all ${isSpeaking ? 'bg-violet-500 text-white animate-pulse' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-white'}`}
+                            title="Click to Speak"
+                        >
+                            <Volume2 size={18} className={isSpeaking ? 'animate-bounce' : ''} />
                         </button>
-                        <button className="rounded-full bg-zinc-800 p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors">
-                            <Copy size={18} />
+                        <button
+                            onClick={handleCopy}
+                            className="rounded-full bg-zinc-800 p-2 text-zinc-400 hover:bg-zinc-700 hover:text-white transition-colors"
+                            title="Copy Mnemonic"
+                        >
+                            {copied ? <Check size={18} className="text-green-400" /> : <Copy size={18} />}
                         </button>
                     </div>
                 </div>
@@ -150,9 +238,23 @@ export function MnemonicCard({ data }: { data: MnemonicData }) {
                         <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
                         AI Generated • Verified by RattaMaar
                     </div>
-                    <button className="flex items-center gap-2 text-sm font-medium text-violet-400 hover:text-violet-300">
-                        <Share2 size={16} /> Share Trick
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button className="flex items-center gap-2 text-sm font-medium text-violet-400 hover:text-violet-300">
+                            <Share2 size={16} /> Share Trick
+                        </button>
+                        <button
+                            onClick={handleDownload}
+                            disabled={isDownloading}
+                            className="flex items-center gap-2 rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-violet-600 active:scale-95 disabled:opacity-50"
+                        >
+                            {isDownloading ? (
+                                <Loader2 size={16} className="animate-spin" />
+                            ) : (
+                                <Download size={16} />
+                            )}
+                            {isDownloading ? "Capturing..." : "Save Card"}
+                        </button>
+                    </div>
                 </div>
 
             </div>

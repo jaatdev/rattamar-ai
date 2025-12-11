@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Zap } from "lucide-react";
 import { MnemonicCard } from "./MnemonicCard";
+import { QuizArena } from "./QuizArena";
 
 export function InputReactor() {
     const [input, setInput] = useState("");
@@ -97,11 +98,15 @@ export function InputReactor() {
                 </div>
             </motion.div>
 
-            {/* RESULT CARD PREVIEW (Will animate in when data arrives) */}
             <AnimatePresence>
                 {result && (
-                    <div className="mt-8 flex w-full justify-center" style={{ perspective: "1000px" }}>
+                    <div className="mt-8 flex w-full flex-col items-center gap-8" style={{ perspective: "1000px" }}>
                         <MnemonicCard data={result} />
+
+                        {/* THE QUIZ ARENA */}
+                        {result.quiz && result.quiz.length > 0 && (
+                            <QuizArena questions={result.quiz} />
+                        )}
                     </div>
                 )}
             </AnimatePresence>
